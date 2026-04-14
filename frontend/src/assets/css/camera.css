@@ -1,0 +1,16 @@
+*{
+    padding: 0px;
+    margin: 0px;
+    box-sizing: border-box;
+}
+.capture{
+    padding: 8px 15px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 2px;
+    background-color: gray;
+    color: white;
+}
+.videocapture{
+    margin: 20px;
+}
