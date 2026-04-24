@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import *
 from .utils import *
 import numpy as np
@@ -15,42 +16,56 @@ import face_recognition
 import face_recognition
 
 class RegisterUser(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
     def post(self, request):
-        image = request.FILES['image']
+        try:
+            name = request.data.get('name')
+            email = request.data.get('email')
+            image = request.FILES.get('image')
 
-        file_bytes = np.asarray(bytearray(image.read()), dtype=np.uint8)
-        frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+            if not name or not email:
+                return Response({"msg": "Name and email required"}, status=400)
 
-        encoding = get_face_encoding(frame)
+            if not image:
+                return Response({"msg": "Image not received"}, status=400)
 
-        if encoding is None:
-            return Response({"msg": "Face not detected properly"}, status=400)
+            file_bytes = np.asarray(bytearray(image.read()), dtype=np.uint8)
+            frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-        # 🔥 CHECK DUPLICATE FACE
-        users = User.objects.all()
+            if frame is None:
+                return Response({"msg": "Invalid image"}, status=400)
 
-        for user in users:
-            stored_encoding = np.frombuffer(user.face_encoding, dtype=np.float64)
+            encoding = get_face_encoding(frame)
 
-            match = face_recognition.compare_faces(
-                [stored_encoding], encoding
-            )[0]
+            if encoding is None:
+                return Response({"msg": "Face not detected properly"}, status=400)
 
-            if match:
-                return Response({
-                    "msg": f"Face already registered with email: {user.email}"
-                }, status=400)
+            users = User.objects.all()
 
-        # ✅ CREATE NEW USER
-        User.objects.create(
-            name=request.data['name'],
-            email=request.data['email'],
-            face_encoding=encoding.tobytes()
-        )
+            for user in users:
+                stored_encoding = np.frombuffer(user.face_encoding, dtype=np.float64)
 
-        return Response({"msg": "User registered"})
-    
+                match = face_recognition.compare_faces(
+                    [stored_encoding], encoding
+                )[0]
 
+                if match:
+                    return Response({
+                        "msg": f"Face already registered with email: {user.email}"
+                    }, status=400)
+
+            User.objects.create(
+                name=name,
+                email=email,
+                face_encoding=encoding.tobytes()
+            )
+
+            return Response({"msg": "User registered successfully"})
+
+        except Exception as e:
+            print("ERROR:", str(e))
+            return Response({"msg": "Server error"}, status=500)
 class SignInUser(APIView):
     def post(self, request):
         image = request.FILES['image']
@@ -71,14 +86,12 @@ class SignInUser(APIView):
 
         stored_encoding = np.frombuffer(user.face_encoding, dtype=np.float64)
 
-        # 🔥 FACE MATCH
         distance = face_recognition.face_distance(
             [stored_encoding], encoding
         )[0]
 
         if distance < 0.5:
 
-            # ✅ CHECK TODAY ATTENDANCE
             today = date.today()
 
             already_marked = Attendance.objects.filter(
@@ -91,7 +104,6 @@ class SignInUser(APIView):
                     "msg": "Attendance already marked today"
                 })
 
-            # ✅ CREATE ATTENDANCE
             Attendance.objects.create(user=user)
 
             return Response({

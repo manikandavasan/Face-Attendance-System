@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react"
 import "../assets/css/attendance_data.css"
+import { useNavigate } from "react-router-dom"
 
 
 export default function AttendanceData() {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
+    const navigate = useNavigate()
 
     useEffect(() => {
         const fetchData = async () => {
@@ -53,5 +55,7 @@ export default function AttendanceData() {
                 </table>
             )}
         </div>
+        
     );
 }
+

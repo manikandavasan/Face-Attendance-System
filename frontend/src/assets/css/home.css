@@ -1,0 +1,33 @@
+*{
+    padding: 0px;
+    margin: 0px;
+    box-sizing: border-box;
+}
+.container{
+    height: 100vh;
+    background-color: rgb(236, 236, 236);
+    padding: 20px;
+}
+.login-box{
+    height: 500px;
+    width: 80%;
+    padding: 50px;
+    margin: 50px;
+    background-color: gray;
+    display: flex;
+    gap: 50px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+}
+
+.login-box button{
+    background-color: rgb(153, 255, 0);
+    width: 300px;
+    height: 150px;
+    font-size: 25px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+}

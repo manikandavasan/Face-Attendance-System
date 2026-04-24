@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Camera from "../components/Camera";
 import API from "../api/api";
-import "../assets/css/signin.css"
+import "../assets/css/signin.css";
 
 function SignIn() {
   const [email, setEmail] = useState("");
+  const navigate = useNavigate()
 
   const handleCapture = (blob) => {
     if (!email) {
@@ -19,9 +21,11 @@ function SignIn() {
     API.post("signin/", formData)
       .then(res => {
         alert(res.data.msg);
+        navigate(`/api/attendance_data`)
       })
       .catch(err => {
         alert(err.response?.data?.msg || "Error");
+        navigate(`/api/attendance_data`)
       });
   };
 
